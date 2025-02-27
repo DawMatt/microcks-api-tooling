@@ -21,13 +21,13 @@ const createMessage = () => {
   if (amqpFile) {
     try {
       const fileContents = fs.readFileSync(amqpFile, 'utf8');
-      return JSON.parse(fileContents);
+      return fileContents;
     } catch (err) {
       console.error('Error reading or parsing file:', err);
-      return {};
+      return null;
     }
   } else {
-    return {};
+    return null;
   }
 };
 
@@ -44,15 +44,15 @@ amqplib.connect(amqpHost, (err, conn) => {
       ch.assertExchange(amqpTopic, amqpExch, { durable: false }, cb);
       setInterval(() => {
         var msg = createMessage();
-        console.log('Publishing ' + JSON.stringify(msg));
-        ch.publish(amqpTopic, amqpExch, Buffer.from(JSON.stringify(msg)));
+        console.log('Publishing ' + (msg || '"" (empty message)'));
+        ch.publish(amqpTopic, amqpExch, Buffer.from(msg));
       }, 3000);
     } else {
       ch.assertQueue(amqpTopic, { durable: false, noAck: true }, cb);
       setInterval(() => {
         var msg = createMessage();
-        console.log('Sending ' + JSON.stringify(msg));
-        ch.sendToQueue(queue, Buffer.from(JSON.stringify(msg)));
+        console.log('Sending ' + (msg || '"" (empty message)'));
+        ch.sendToQueue(queue, Buffer.from(msg));
       }, 3000);
     }
   });
